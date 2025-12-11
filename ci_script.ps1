@@ -1,5 +1,3 @@
-[file name]: ci_script.ps1
-[file content begin]
 param(
     [string]$RepoUrl = "https://github.com/salo3009/calculator-pr1",
     [string]$BuildDir = $PSScriptRoot
@@ -81,50 +79,6 @@ if (-not (Test-Path "main_app.py")) {
 
 $ExeName = "Calculator"
 
-$SpecContent = @"
-# -*- mode: python ; coding: utf-8 -*-
-
-a = Analysis(
-    ['main_app.py'],
-    pathex=[],
-    binaries=[],
-    datas=[],
-    hiddenimports=[],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    noarchive=False,
-    optimize=0,
-)
-
-pyz = PYZ(a.pure)
-
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.datas,
-    [],
-    name='$ExeName',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,  # Запуск без консоли (GUI приложение)
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon=None,
-)
-"@
-
-$SpecContent | Out-File -FilePath "calculator_spec.spec" -Encoding UTF8
-
 Write-Host "Запуск PyInstaller для сборки исполняемого файла..." -ForegroundColor Cyan
 pyinstaller --onefile --windowed --name "$ExeName" --clean main_app.py
 
@@ -175,11 +129,9 @@ Get-ChildItem . -Recurse -Directory -Name "__pycache__" | ForEach-Object {
     $path = Join-Path (Split-Path $_ -Parent) "__pycache__"
     if (Test-Path $path) { Remove-Item -Recurse -Force $path }
 }
-Remove-Item -Force calculator_spec.spec -ErrorAction SilentlyContinue
 
 Write-Host "[CI] Непрерывная интеграция успешно завершена!" -ForegroundColor Green
 Write-Host "Результаты:" -ForegroundColor Cyan
 Write-Host "  - Исполняемый файл: $($ExeFile.FullName)" -ForegroundColor Cyan
 Write-Host "  - Установочный пакет: $ZipFile" -ForegroundColor Cyan
 Write-Host "  - Размер пакета: $([math]::Round((Get-Item $ZipFile).Length/1MB, 2)) MB" -ForegroundColor Cyan
-[file content end]
