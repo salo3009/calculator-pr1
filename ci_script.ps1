@@ -169,7 +169,6 @@ if (Test-Path $ZipFile) {
     Remove-Item -Force $ZipFile -ErrorAction SilentlyContinue
 }
 
-# Используем Compress-Archive (доступно в PowerShell 5+)
 try {
     Compress-Archive -Path "$PackageDir\*" -DestinationPath $ZipFile -Force
     Write-Host "Установочный пакет создан: $ZipFile" -ForegroundColor Green
