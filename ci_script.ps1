@@ -18,14 +18,10 @@ Write-Host "[1/5] Загрузка актуальной версии из реп
 if (Test-Path "$BuildDir\.git") {
     Set-Location $BuildDir
     git fetch origin
-    if (git show-ref --verify --quiet refs/heads/origin/main) {
-        git checkout main --quiet
-        git reset --hard origin/main --quiet
-    } elseif (git show-ref --verify --quiet refs/heads/origin/master) {
-        git checkout master --quiet
-        git reset --hard origin/master --quiet
-    } else {
-        Write-Host "Ошибка: не найдены ветки main или master на origin." -ForegroundColor Red
+    git checkout master --quiet
+    git reset --hard origin/master --quiet
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Ошибка: не удалось обновиться до origin/master." -ForegroundColor Red
         exit 1
     }
 } else {
