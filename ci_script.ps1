@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$RepoUrl = "https://github.com/salo3009/calculator-pr1",
     [string]$BuildDir = $PSScriptRoot
 )
