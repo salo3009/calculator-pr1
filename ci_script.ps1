@@ -1,7 +1,9 @@
 ﻿param(
     [string]$RepoUrl = "https://github.com/salo3009/calculator-pr1",
-    [string]$BuildDir 
+    [string]$BuildDir = $PSScriptRoot
 )
+
+$RepoUrl = $RepoUrl.Trim()
 
 if (-not $RepoUrl -or -not $BuildDir) {
     Write-Host "Ошибка: не указаны необходимые параметры." -ForegroundColor Red
@@ -9,22 +11,27 @@ if (-not $RepoUrl -or -not $BuildDir) {
 }
 
 $ProjectName = [System.IO.Path]::GetFileNameWithoutExtension($RepoUrl.TrimEnd('/'))
-
 Write-Host "[CI] Начало непрерывной интеграции для Python-проекта '$ProjectName'" -ForegroundColor Green
 
 Write-Host "[1/5] Загрузка актуальной версии из репозитория..." -ForegroundColor Cyan
 
-if (Test-Path $BuildDir) {
+if (Test-Path "$BuildDir\.git") {
     Set-Location $BuildDir
     git fetch origin
-    if (git show-ref --verify --quiet refs/heads/main) {
-        git checkout main
-        git reset --hard origin/main
+    if (git show-ref --verify --quiet refs/heads/origin/main) {
+        git checkout main --quiet
+        git reset --hard origin/main --quiet
+    } elseif (git show-ref --verify --quiet refs/heads/origin/master) {
+        git checkout master --quiet
+        git reset --hard origin/master --quiet
     } else {
-        git checkout master
-        git reset --hard origin/master
+        Write-Host "Ошибка: не найдены ветки main или master на origin." -ForegroundColor Red
+        exit 1
     }
 } else {
+    if (Test-Path $BuildDir) {
+        Remove-Item -Recurse -Force $BuildDir
+    }
     git clone $RepoUrl $BuildDir
     if (-not $?) {
         Write-Host "Ошибка: не удалось клонировать репозиторий." -ForegroundColor Red
@@ -42,6 +49,10 @@ if (-not (Test-Path "setup.py")) {
 }
 
 Remove-Item -Recurse -Force dist, build, *.egg-info -ErrorAction SilentlyContinue
+Get-ChildItem . -Recurse -Directory -Name "__pycache__" | ForEach-Object {
+    $path = Join-Path (Split-Path $_ -Parent) "__pycache__"
+    if (Test-Path $path) { Remove-Item -Recurse -Force $path }
+}
 
 python setup.py sdist
 if (-not (Test-Path "dist")) {
@@ -54,7 +65,10 @@ Write-Host "Сборка завершена. Архив: $(Get-ChildItem dist)" 
 Write-Host "[3/5] Запуск юнит-тестов..." -ForegroundColor Cyan
 
 python -m unittest discover -s test_calculator
-if ($LASTEXITCODE -ne 0) { Write-Host "Тесты провалились!"; exit 1 }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Тесты провалились!" -ForegroundColor Red
+    exit 1
+}
 
 Write-Host "Все тесты пройдены успешно." -ForegroundColor Green
 
