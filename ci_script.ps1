@@ -189,11 +189,3 @@ Get-ChildItem . -Recurse -Directory -Name "__pycache__" | ForEach-Object {
 }
 
 Write-Host "[CI] Непрерывная интеграция успешно завершена!" -ForegroundColor Green
-Write-Host "=" * 60 -ForegroundColor Cyan
-Write-Host "РЕЗУЛЬТАТЫ:" -ForegroundColor Green
-Write-Host "  - Исполняемый файл: $($ExeFile.FullName)" -ForegroundColor Cyan
-if ($ZipFile) {
-    Write-Host "  - Архив для распространения: $ZipFile" -ForegroundColor Cyan
-}
-Write-Host "  - Папка с пакетом: $PackageDir\" -ForegroundColor Cyan
-Write-Host "=" * 60 -ForegroundColor Cyan
