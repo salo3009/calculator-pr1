@@ -57,7 +57,7 @@ Write-Host "[3/5] Запуск юнит-тестов..." -ForegroundColor Cyan
 python -c "import unittest" 2>$null
 if ($LASTEXITCODE -eq 0) {
     if (Test-Path "test_calculator.py") {
-        python -m pytest test_calculator.py -v
+        python -m unittest test_calculator.py 
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Тесты провалились!" -ForegroundColor Red
             exit 1
